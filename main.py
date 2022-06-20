@@ -6,7 +6,6 @@ import os
 from moviepy.editor import VideoFileClip, AudioFileClip
 import moviepy.video.fx.all as vfx
 #import ffmpeg
-
 sg.theme('SystemDefault1')
 #start_layout = [[sg.Input(key='-input-'),sg.Button('Load', key = '-load-')]]
 layout = [
@@ -17,7 +16,8 @@ layout = [
     [sg.Text('',key = '-title-',font='Roboto 12 bold')],
     [sg.Text('',key = '-author-',font='Roboto 10')],
     [sg.Text('')],
-    [sg.Button('Download',key = '-download-',button_color=('#ffffff','#000000'''), border_width = 0,visible=False)],
+    [sg.Button('Download',key = '-download-',button_color=('#ffffff','#000000'''), border_width = 0,visible=False),
+     sg.Checkbox('With Audio?',key='-checkbox-',visible = False)],
     [sg.VPush()]
         ]
 window = sg.Window('Youtube Converter 2000',
@@ -46,6 +46,7 @@ while True:
         window['-title-'].update(video_object.title)
         window['-author-'].update(f'from: {video_object.author}')
         window['-download-'].update(visible=True)
+        window['-checkbox-'].update(visible=True)
 
     if event == '-download-':
         if os.path.exists("video.mp4"):
@@ -70,10 +71,11 @@ while True:
 #            .output("./done/output.mp4")
 #            .run(overwrite_output=True)
 #        )
-        videoclip = mymovie.VideoFileClip(input_video)
-        audioclip = mymovie.AudioFileClip(input_audio)
-        finalclip = videoclip.set_audio(audioclip)
-        finalclip.write_videofile(output_video, fps=60)
+        if values['-checkbox-']:
+            videoclip = mymovie.VideoFileClip(input_video)
+            audioclip = mymovie.AudioFileClip(input_audio)
+            finalclip = videoclip.set_audio(audioclip)
+            finalclip.write_videofile(output_video, fps=60)
 
         print('Done')
 
