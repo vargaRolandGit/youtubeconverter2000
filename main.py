@@ -1,40 +1,80 @@
 from pytube import YouTube
-import os
+from moviepy.editor import *
+import moviepy.editor as mymovie
 import PySimpleGUI as sg
-import ffmpeg
+import os
+from moviepy.editor import VideoFileClip, AudioFileClip
+import moviepy.video.fx.all as vfx
+#import ffmpeg
 
-def on_complete_audio(stream,file_path):
-    pass
+sg.theme('SystemDefault1')
+#start_layout = [[sg.Input(key='-input-'),sg.Button('Load', key = '-load-')]]
+layout = [
+    #[sg.Text('Youtube Converter 2000', font='Comic 10'),sg.Push(),sg.Image('close.png',enable_events=True,key='-close-')],
+    [sg.VPush()],
+    [sg.Text('URL:',font='Roboto 8'),sg.Input(key='-input-'),
+     sg.Button('Load', key = '-load-',button_color=('#ffffff','#000000'''), border_width = 0)],
+    [sg.Text('',key = '-title-',font='Roboto 12 bold')],
+    [sg.Text('',key = '-author-',font='Roboto 10')],
+    [sg.Text('')],
+    [sg.Button('Download',key = '-download-',button_color=('#ffffff','#000000'''), border_width = 0,visible=False)],
+    [sg.VPush()]
+        ]
+window = sg.Window('Youtube Converter 2000',
+                   layout,
+                   finalize=True,
+                   size=(500, 300),
+                   element_justification='center',
+                   #no_titlebar = True
+                   )
+url = ''
 
-def on_complete(stream,file_path):
-    print('complete')
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED:
+        break
+    if event == '-close-':
+        break
 
-def on_progress(stream,chunk,bytes_remaining):
-    print(f"{100-(round(bytes_remaining / stream.filesize * 100))}%")
+    if event == '-load-':
+        url = values['-input-']
+        video_object = YouTube(url)
+        audio_object = YouTube(url)
 
-video_object = YouTube(
-    'https://www.youtube.com/watch?v=3vSxHROQ4Hs',
-    on_complete_callback = on_complete,
-    on_progress_callback = on_progress,)
 
-audio_object = YouTube(
-    'https://www.youtube.com/watch?v=3vSxHROQ4Hs',
-    on_complete_callback = on_complete_audio)
+        #video info
+        window['-title-'].update(video_object.title)
+        window['-author-'].update(f'from: {video_object.author}')
+        window['-download-'].update(visible=True)
 
-#print(video_object.streams)
-video = video_object.streams.get_by_itag(271).download()
-os.rename(video, "video.mp4")
-audio = audio_object.streams.get_audio_only().download()
-os.rename(audio, "audio.mp4")
+    if event == '-download-':
+        if os.path.exists("video.mp4"):
+            os.remove("video.mp4")
+        if os.path.exists("audio.mp4"):
+            os.remove("audio.mp4")
+        video = video_object.streams.get_by_itag(313).download()
+        os.rename(video, "video.mp4")
+        audio = audio_object.streams.get_audio_only().download()
+        os.rename(audio, "audio.mp4")
 
-input_video = ffmpeg.input('video.mp4')
-input_audio = ffmpeg.input('audio.mp4')
+#        input_video = ffmpeg.input('video.mp4')
+#        input_audio = ffmpeg.input('audio.mp4')
+        input_video = "video.mp4"
+        input_audio = "audio.mp4"
+        output_video = "output.mp4"
 
-(
-    ffmpeg
-    .concat(input_video, input_audio, v=1, a=1)
-    .output("./done/output.mp4")
-    .run(overwrite_output=True)
-)
+        #
+#        (
+#            ffmpeg
+#            .concat(input_video, input_audio, v=1, a=1)
+#            .output("./done/output.mp4")
+#            .run(overwrite_output=True)
+#        )
+        videoclip = mymovie.VideoFileClip(input_video)
+        audioclip = mymovie.AudioFileClip(input_audio)
+        finalclip = videoclip.set_audio(audioclip)
+        finalclip.write_videofile(output_video, fps=60)
 
-print("done")
+        print('Done')
+
+window.close()
